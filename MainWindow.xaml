@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="KubMailAnalyzer.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KubMailAnalyzer"
+    xmlns:models="using:KubMailAnalyzer.Models"
+    Title="KubMailAnalyzer – Mailheader-Analyse">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="RootGrid" Padding="16" RowSpacing="12">
+        <Grid.Resources>
+            <Style x:Key="ColumnHeaderText" TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            </Style>
+            <Style x:Key="SummaryLabel" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Setter Property="Margin" Value="0,0,12,0" />
+            </Style>
+            <Style x:Key="SummaryValue" TargetType="TextBlock">
+                <Setter Property="IsTextSelectionEnabled" Value="True" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            </Style>
+            <Style x:Key="TableHeaderBorder" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1,1,1,0" />
+                <Setter Property="CornerRadius" Value="6,6,0,0" />
+                <Setter Property="Padding" Value="12,8" />
+            </Style>
+            <Style x:Key="TableBodyBorder" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="0,0,6,6" />
+            </Style>
+            <Style x:Key="RowListViewItem" TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Padding" Value="12,6" />
+                <Setter Property="MinHeight" Value="32" />
+            </Style>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Kopfzeile -->
+        <Grid Grid.Row="0" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="Mailheader-Analyse" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <TextBlock Text="Kopieren Sie den Header einer E-Mail in das Feld und klicken Sie auf „Analysieren“."
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Click="Paste_Click" ToolTipService.ToolTip="Aus Zwischenablage einfügen und analysieren">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE77F;" FontSize="14" />
+                        <TextBlock Text="Einfügen" />
+                    </StackPanel>
+                </Button>
+                <Button Click="Clear_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE74D;" FontSize="14" />
+                        <TextBlock Text="Leeren" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource AccentButtonStyle}" Click="Analyze_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE721;" FontSize="14" />
+                        <TextBlock Text="Analysieren" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Eingabe -->
+        <TextBox x:Name="HeaderInput"
+                 Grid.Row="1"
+                 Height="200"
+                 AcceptsReturn="True"
+                 TextWrapping="NoWrap"
+                 IsSpellCheckEnabled="False"
+                 FontFamily="Cascadia Mono, Consolas"
+                 FontSize="12"
+                 PlaceholderText="Received: from mail.example.com ...&#x0a;From: Max Mustermann &lt;max@example.com&gt;&#x0a;Subject: ..."
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+
+        <!-- Zusammenfassung -->
+        <Border x:Name="SummaryPanel" Grid.Row="2" Visibility="Collapsed"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1" CornerRadius="6" Padding="16,12">
+            <Grid ColumnSpacing="24" RowSpacing="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Von" Style="{StaticResource SummaryLabel}" />
+                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="SumFrom" Style="{StaticResource SummaryValue}" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="An" Style="{StaticResource SummaryLabel}" />
+                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="SumTo" Style="{StaticResource SummaryValue}" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Betreff" Style="{StaticResource SummaryLabel}" />
+                <TextBlock Grid.Row="2" Grid.Column="1" x:Name="SumSubject" Style="{StaticResource SummaryValue}" />
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Return-Path" Style="{StaticResource SummaryLabel}" />
+                <TextBlock Grid.Row="3" Grid.Column="1" x:Name="SumReturnPath" Style="{StaticResource SummaryValue}" />
+
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="Datum" Style="{StaticResource SummaryLabel}" />
+                <TextBlock Grid.Row="0" Grid.Column="3" x:Name="SumDate" Style="{StaticResource SummaryValue}" />
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="Stationen" Style="{StaticResource SummaryLabel}" />
+                <TextBlock Grid.Row="1" Grid.Column="3" x:Name="SumHops" Style="{StaticResource SummaryValue}" />
+                <TextBlock Grid.Row="2" Grid.Column="2" Text="Felder" Style="{StaticResource SummaryLabel}" />
+                <TextBlock Grid.Row="2" Grid.Column="3" x:Name="SumFields" Style="{StaticResource SummaryValue}" />
+                <TextBlock Grid.Row="3" Grid.Column="2" Text="Authentifizierung" Style="{StaticResource SummaryLabel}" VerticalAlignment="Center" />
+                <StackPanel Grid.Row="3" Grid.Column="3" x:Name="SumAuth" Orientation="Horizontal" Spacing="6" />
+            </Grid>
+        </Border>
+
+        <!-- Tabs + Werkzeuge -->
+        <Grid Grid.Row="3" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <SelectorBar x:Name="ViewSelector" SelectionChanged="ViewSelector_SelectionChanged">
+                <SelectorBarItem x:Name="TabFields" Text="Alle Felder" IsSelected="True" />
+                <SelectorBarItem x:Name="TabHops" Text="Zustellweg" />
+                <SelectorBarItem x:Name="TabAuth" Text="Authentifizierung" />
+            </SelectorBar>
+            <TextBox x:Name="FilterBox" Grid.Column="1" Width="260" VerticalAlignment="Center"
+                     PlaceholderText="Felder filtern …" TextChanged="FilterBox_TextChanged" />
+            <Button Grid.Column="2" VerticalAlignment="Center" Click="CopyTable_Click"
+                    ToolTipService.ToolTip="Aktuelle Tabelle tabulatorgetrennt kopieren (z. B. für Excel)">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                    <TextBlock Text="Tabelle kopieren" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Tabelle: Alle Felder -->
+        <Grid x:Name="FieldsView" Grid.Row="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border Style="{StaticResource TableHeaderBorder}">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="260" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="#" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="1" Text="Feld" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="2" Text="Wert" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="3" Text="Kategorie" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="4" Text="Beschreibung" Style="{StaticResource ColumnHeaderText}" />
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Style="{StaticResource TableBodyBorder}">
+                <ListView x:Name="FieldsList" SelectionMode="Single" ItemContainerStyle="{StaticResource RowListViewItem}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:HeaderField">
+                            <Grid ColumnSpacing="12" Padding="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="40" />
+                                    <ColumnDefinition Width="220" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="160" />
+                                    <ColumnDefinition Width="260" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{x:Bind Index}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                <TextBlock Grid.Column="1" Text="{x:Bind Name}" FontWeight="SemiBold" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                <TextBlock Grid.Column="2" Text="{x:Bind Value}" TextWrapping="Wrap" IsTextSelectionEnabled="True"
+                                           FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                                           ToolTipService.ToolTip="{x:Bind RawValue}" />
+                                <TextBlock Grid.Column="3" Text="{x:Bind Category}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBlock Grid.Column="4" Text="{x:Bind Description}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Border>
+        </Grid>
+
+        <!-- Tabelle: Zustellweg -->
+        <Grid x:Name="HopsView" Grid.Row="4" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border Style="{StaticResource TableHeaderBorder}">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="100" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Hop" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="1" Text="Von (from)" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="2" Text="Durch (by)" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="3" Text="Protokoll" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="4" Text="Zeitpunkt (lokal)" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="5" Text="Verzögerung" Style="{StaticResource ColumnHeaderText}" />
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Style="{StaticResource TableBodyBorder}">
+                <ListView x:Name="HopsList" SelectionMode="Single" ItemContainerStyle="{StaticResource RowListViewItem}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ReceivedHop">
+                            <Grid ColumnSpacing="12" Padding="0,2" ToolTipService.ToolTip="{x:Bind Raw}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="40" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="100" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{x:Bind Hop}" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="{x:Bind From}" TextWrapping="Wrap" IsTextSelectionEnabled="True" FontFamily="Cascadia Mono, Consolas" FontSize="12" />
+                                <TextBlock Grid.Column="2" Text="{x:Bind By}" TextWrapping="Wrap" IsTextSelectionEnabled="True" FontFamily="Cascadia Mono, Consolas" FontSize="12" />
+                                <TextBlock Grid.Column="3" Text="{x:Bind With}" TextWrapping="Wrap" />
+                                <TextBlock Grid.Column="4" Text="{x:Bind TimestampText}" />
+                                <TextBlock Grid.Column="5" Text="{x:Bind DelayText}" FontWeight="SemiBold"
+                                           Foreground="{x:Bind local:UiHelpers.DelayBrush(Delay)}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Border>
+        </Grid>
+
+        <!-- Tabelle: Authentifizierung -->
+        <Grid x:Name="AuthView" Grid.Row="4" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border Style="{StaticResource TableHeaderBorder}">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="110" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="300" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Methode" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="1" Text="Ergebnis" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="2" Text="Details" Style="{StaticResource ColumnHeaderText}" />
+                    <TextBlock Grid.Column="3" Text="Quelle" Style="{StaticResource ColumnHeaderText}" />
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Style="{StaticResource TableBodyBorder}">
+                <ListView x:Name="AuthList" SelectionMode="Single" ItemContainerStyle="{StaticResource RowListViewItem}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:AuthResult">
+                            <Grid ColumnSpacing="12" Padding="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="300" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{x:Bind Method}" FontWeight="SemiBold" />
+                                <Border Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top" CornerRadius="4" Padding="8,1"
+                                        Background="{x:Bind local:UiHelpers.StatusBrush(Status)}">
+                                    <TextBlock Text="{x:Bind Result}" Foreground="White" FontWeight="SemiBold" />
+                                </Border>
+                                <TextBlock Grid.Column="2" Text="{x:Bind Details}" TextWrapping="Wrap" IsTextSelectionEnabled="True" FontFamily="Cascadia Mono, Consolas" FontSize="12" />
+                                <TextBlock Grid.Column="3" Text="{x:Bind Source}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
