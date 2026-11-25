@@ -14,10 +14,19 @@ Eine Datei (`.eml`/`.txt`) kann auch als Startargument übergeben werden.
 
 ![Screenshot](screenshot.png)
 
+## Download
+
+Unter **Releases** liegt `KubMailAnalyzer.exe` – eine portable Einzeldatei für Windows 10/11 (x64).
+Keine Installation nötig, auch kein .NET oder Windows App SDK: herunterladen und starten.
+
 ## Bauen und starten
 
 ```powershell
 dotnet run
 ```
 
-Die App ist unpaketiert und bringt das Windows App SDK selbst mit (keine Installation nötig).
+Portable Exe erzeugen (landet in `publish\`):
+
+```powershell
+dotnet publish -c Release -r win-x64 -o publish
+```
