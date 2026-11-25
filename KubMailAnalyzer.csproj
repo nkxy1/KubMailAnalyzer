@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -16,9 +16,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Product>KubMailAnalyzer</Product>
     <Description>Analyse von E-Mail-Headern</Description>
+    <ApplicationIcon>Assets/KubMailAnalyzer.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!-- Portable Einzeldatei-Exe: dotnet publish -c Release -->
@@ -36,5 +37,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4654" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Assets/**" />
+    <Content Include="Assets/KubMailAnalyzer.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets/AppIcon.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

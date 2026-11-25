@@ -11,7 +11,25 @@
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid x:Name="RootGrid" Padding="16" RowSpacing="12">
+    <Grid>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <!-- Eigene Titelleiste (folgt dem Hell-/Dunkel-Design) -->
+    <Grid x:Name="AppTitleBar" Height="40" ColumnSpacing="10" Padding="14,0,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition x:Name="CaptionButtonsColumn" Width="0" />
+        </Grid.ColumnDefinitions>
+        <Image x:Name="TitleBarIcon" Width="18" Height="18" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="1" x:Name="TitleBarText" Text="KubMailAnalyzer"
+                   VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" />
+    </Grid>
+
+    <Grid x:Name="RootGrid" Grid.Row="1" Padding="16,4,16,16" RowSpacing="12">
         <Grid.Resources>
             <Style x:Key="ColumnHeaderText" TargetType="TextBlock">
                 <Setter Property="FontWeight" Value="SemiBold" />
@@ -301,5 +319,6 @@
                 </ListView>
             </Border>
         </Grid>
+    </Grid>
     </Grid>
 </Window>

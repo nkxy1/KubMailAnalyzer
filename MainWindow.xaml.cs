@@ -3,7 +3,9 @@ using System.Text;
 using KubMailAnalyzer.Models;
 using KubMailAnalyzer.Services;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace KubMailAnalyzer;
@@ -18,12 +20,33 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        ExtendsContentIntoTitleBar = false;
+        SetupTitleBarAndIcon();
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1400, 950));
 
         FieldsList.ItemsSource = _fields;
         HopsList.ItemsSource = _hops;
         AuthList.ItemsSource = _auth;
+    }
+
+    // ---------------------------------------------------------------- Titelleiste & Icon
+
+    private void SetupTitleBarAndIcon()
+    {
+        // Inhalt in die Titelleiste erweitern: Hintergrund (Mica) und Text folgen
+        // automatisch dem Hell-/Dunkel-Design von Windows.
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
+
+        // Assets liegen neben der Exe (bzw. im Entpackordner der Einzeldatei-Exe)
+        var assets = Path.Combine(AppContext.BaseDirectory, "Assets");
+        var ico = Path.Combine(assets, "KubMailAnalyzer.ico");
+        if (File.Exists(ico))
+            AppWindow.SetIcon(ico);
+
+        var png = Path.Combine(assets, "AppIcon.png");
+        if (File.Exists(png))
+            TitleBarIcon.Source = new BitmapImage(new Uri(png)) { DecodePixelWidth = 36 };
     }
 
     // ---------------------------------------------------------------- Aktionen
